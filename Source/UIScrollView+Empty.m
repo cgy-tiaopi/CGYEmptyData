@@ -105,10 +105,9 @@ static char *const kEmptyDataDataSource = "kEmptyDataDataSource";
 - (void)setEmptyViewDataSource:(id<EmptyDataViewDataSource>)emptyViewDataSource
 {
     ProtocolContainer *container = [[ProtocolContainer alloc] initWithProtocol:emptyViewDataSource];
-    
     objc_setAssociatedObject(self, kEmptyDataDataSource, container, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     
-    [self SelectorShouldBeSwizzle];
+    [self SelectorShouldBeSwizzle];         //在EmptyViewDataSource的set方法中实现系统方法的替换操作
 }
 
 - (void)setEmptyDataView:(EmptyDataView *)emptyDataView
@@ -121,7 +120,6 @@ static char *const kEmptyDataDataSource = "kEmptyDataDataSource";
 - (id<EmptyDataViewDataSource>)emptyViewDataSource
 {
     ProtocolContainer *container = objc_getAssociatedObject(self, kEmptyDataDataSource);
-    
     return container.protocolContainer;
 }
 
@@ -146,7 +144,6 @@ static char *const kEmptyDataDataSource = "kEmptyDataDataSource";
     return view;
 }
 
-#pragma mark - 方法替换前的准备
 /**
  判断是否需要展示缺省页EmptyDataView
  */
@@ -253,53 +250,50 @@ static char *const kEmptyDataDataSource = "kEmptyDataDataSource";
  被替换后的方法
 
  @param self self
- @param _cmd 方法
+ @param _cmd 方法名称
  */
 void newImplemention(id self, SEL _cmd)
 {
     NSString *selfClass = NSStringFromClass([self class]);
     NSString *selectorName = NSStringFromSelector(_cmd);
-    NSString *key = [NSString stringWithFormat:@"%@_%@",selfClass,selectorName];
+    NSString *key = [NSString stringWithFormat:@"%@_%@",selfClass,selectorName];        //使用当前的类名和当前方法的名称组合称为key值
     
-    NSValue *value = [_cacheDictionary objectForKey:key];
-    
-    [self reloadEmptyView];
+    NSValue *value = [_cacheDictionary objectForKey:key];                               //通过key从缓存字典中取出系统原来方法实现
     
     IMP originalImplemention = [value pointerValue];
     
     if (originalImplemention)
     {
-        ((void(*)(id,SEL))originalImplemention)(self,_cmd);
+        ((void(*)(id,SEL))originalImplemention)(self,_cmd);                             //执行被替换前系统原来的方法
+    }
+    
+    if([self canEmptyDataViewShow])                                                     //判断是否需要展示缺省页
+    {
+        [self reloadEmptyView];
     }
 }
 
 
 - (void)reloadEmptyView
 {
-    if ([self canEmptyDataViewShow])
+    UIView *emptyView;
+    if (self.emptyViewDataSource && [self.emptyViewDataSource respondsToSelector:@selector(emptyDataCustomView)])
     {
-        UIView *emptyView;
-        if (self.emptyViewDataSource && [self.emptyViewDataSource respondsToSelector:@selector(emptyDataCustomView)])
-        {
-            emptyView = [self.emptyViewDataSource emptyDataCustomView];
-        }
-        else
-        {
-            emptyView = self.emptyDataView;
-            emptyView.backgroundColor = [UIColor redColor];
-        }
-        
-        if (!emptyView.superview)
-        {
-            if (self.subviews.count > 1)
-            {
-                [self insertSubview:emptyView atIndex:1];
-            }
-        }
-        
-        emptyView.frame = self.frame;
-        
-        NSLog(@"%@",self);
+        emptyView = [self.emptyViewDataSource emptyDataCustomView];
     }
+    else
+    {
+        emptyView = self.emptyDataView;
+        emptyView.backgroundColor = [UIColor redColor];
+    }
+    
+    if (!emptyView.superview)
+    {
+        if (self.subviews.count > 1)
+        {
+            [self insertSubview:emptyView atIndex:1];
+        }
+    }
+    emptyView.frame = self.frame;
 }
 @end
