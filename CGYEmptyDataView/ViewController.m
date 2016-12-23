@@ -12,6 +12,7 @@
 
 @interface ViewController ()
 {
+    UITableView     *_tableView;
     UIButton        *btn;
 }
 

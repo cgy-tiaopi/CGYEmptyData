@@ -55,12 +55,10 @@
         _tableView.dataSource = self;
         _tableView.emptyViewDataSource = self;
         _tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
-        _tableView.backgroundColor = [UIColor yellowColor];
+        
     }
     
     [self.view addSubview:_tableView];
-    
-//    [_tableView reloadData];
 }
 
 
@@ -85,13 +83,24 @@
     
 }
 
-#pragma mark - EmptyDataViewDataSource
-- (UIView *)emptyDataCustomView
-{
-    UIView *view = [[UIView alloc] init];
-    view.backgroundColor = [UIColor blueColor];
-    
-    return view;
-}
+//#pragma mark - EmptyDataViewDataSource
+//- (UIView *)emptyDataCustomView
+//{
+//    UIView *view = [[UIView alloc] init];
+//    view.backgroundColor = [UIColor redColor];
+//    view.translatesAutoresizingMaskIntoConstraints = NO;
+//    
+//    UIImageView *image = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"customEmpty"]];
+//    image.translatesAutoresizingMaskIntoConstraints = NO;
+//    [view addSubview:image];
+//    
+//    NSLayoutConstraint *imgConstraintCenterX = [NSLayoutConstraint constraintWithItem:image attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:view attribute:NSLayoutAttributeCenterX multiplier:1 constant:0];
+//    NSLayoutConstraint *imgConstraintCenterY = [NSLayoutConstraint constraintWithItem:image attribute:NSLayoutAttributeCenterY relatedBy:NSLayoutRelationEqual toItem:view attribute:NSLayoutAttributeCenterY multiplier:1 constant:-100];
+//    NSLayoutConstraint *imgConstraintHeight = [NSLayoutConstraint constraintWithItem:image attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:view attribute:NSLayoutAttributeHeight multiplier:0 constant:100];
+//    NSLayoutConstraint *imgConstraintWidth = [NSLayoutConstraint constraintWithItem:image attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:view attribute:NSLayoutAttributeWidth multiplier:0 constant:100];
+//    [view  addConstraints:@[imgConstraintCenterX,imgConstraintCenterY,imgConstraintHeight,imgConstraintWidth]];
+//    
+//    return view;
+//}
 
 @end

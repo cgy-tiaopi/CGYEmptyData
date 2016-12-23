@@ -5,8 +5,9 @@
 //  Created by chengangyu on 16/12/15.
 //  Copyright © 2016年 tiaopi.cgy. All rights reserved.
 //
-
+#define MAS_SHORTHAND
 #import "UIScrollView+Empty.h"
+#import "Masonry.h"
 #import <objc/runtime.h>
 
 @interface ProtocolContainer : NSObject
@@ -33,20 +34,17 @@
 
 @interface EmptyDataView : UIView
 
-@property (nonatomic, strong) UIImageView   *imageView;
+@property (nonatomic,strong)  UIView        *contentView;           //缺省视图contentView
 
-@property (nonatomic, strong) UILabel       *label;
+@property (nonatomic,strong)  UIView        *customView;            //自定义的缺省视图
+
+@property (nonatomic, strong) UIImageView   *imageView;             //缺省图
+
+@property (nonatomic, strong) UILabel       *label;                 //缺省标签
 
 @end
 
 @implementation EmptyDataView
-
-- (id)initWithFrame:(CGRect)frame
-{
-    self = [super initWithFrame:frame];
-    
-    return self;
-}
 
 - (id)init
 {
@@ -54,16 +52,35 @@
     if (self)
     {
         [self createUI];
+        self.backgroundColor = [UIColor whiteColor];
     }
     return self;
 }
 
+- (void)createUI
+{
+    [self addSubview:self.contentView];
+    [self.contentView addSubview:self.imageView];
+    [self.contentView addSubview:self.label];
+}
+
 #pragma mark Get方法
+- (UIView *)contentView
+{
+    if (!_contentView)
+    {
+        _contentView = [[UIView alloc] init];
+        _contentView.backgroundColor = [UIColor whiteColor];
+        _contentView.translatesAutoresizingMaskIntoConstraints = NO;
+    }
+    return _contentView;
+}
 - (UIImageView *)imageView
 {
     if (!_imageView)
     {
-        _imageView = [[UIImageView alloc] init];
+        _imageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"noMessage"]];
+        _imageView.translatesAutoresizingMaskIntoConstraints = NO;
     }
     
     return _imageView;
@@ -74,15 +91,13 @@
     if (!_label)
     {
         _label = [[UILabel alloc] init];
+        _label.font = [UIFont systemFontOfSize:16.0f];
+        _label.translatesAutoresizingMaskIntoConstraints = NO;
     }
     
     return _label;
 }
 
-- (void)createUI
-{
-    
-}
 
 @end
 
@@ -276,15 +291,19 @@ void newImplemention(id self, SEL _cmd)
 
 - (void)reloadEmptyView
 {
-    UIView *emptyView;
+    EmptyDataView *emptyView = self.emptyDataView;;
     if (self.emptyViewDataSource && [self.emptyViewDataSource respondsToSelector:@selector(emptyDataCustomView)])
     {
-        emptyView = [self.emptyViewDataSource emptyDataCustomView];
+        emptyView.customView = [self.emptyViewDataSource emptyDataCustomView];
+        emptyView.frame = self.frame;
+        [self addConstraintToEmptyView:emptyView];
     }
     else
     {
-        emptyView = self.emptyDataView;
-        emptyView.backgroundColor = [UIColor redColor];
+//        emptyView = self.emptyDataView;
+        emptyView.frame = self.frame;
+        
+        [self addConstraintToEmptyView:emptyView];
     }
     
     if (!emptyView.superview)
@@ -294,6 +313,43 @@ void newImplemention(id self, SEL _cmd)
             [self insertSubview:emptyView atIndex:1];
         }
     }
-    emptyView.frame = self.frame;
+}
+
+- (void)addConstraintToEmptyView:(EmptyDataView *)emptyView
+{
+    emptyView.label.text = @"暂无数据，请点击屏幕重试";
+    emptyView.customView.frame = emptyView.contentView.frame;
+    emptyView.contentView.frame = emptyView.frame;
+    NSLayoutConstraint *contentViewConstraintCenterX = [NSLayoutConstraint constraintWithItem:emptyView.contentView attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:emptyView attribute:NSLayoutAttributeCenterX multiplier:1 constant:0];
+    NSLayoutConstraint *contentViewConstraintCenterY = [NSLayoutConstraint constraintWithItem:emptyView.contentView attribute:NSLayoutAttributeCenterY relatedBy:NSLayoutRelationEqual toItem:emptyView attribute:NSLayoutAttributeCenterY multiplier:1 constant:0];
+    NSLayoutConstraint *contentViewConstraintWidth = [NSLayoutConstraint constraintWithItem:emptyView.contentView attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:emptyView attribute:NSLayoutAttributeWidth multiplier:1 constant:0];
+    NSLayoutConstraint *contentViewConstraintHeight = [NSLayoutConstraint constraintWithItem:emptyView.contentView attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:emptyView attribute:NSLayoutAttributeHeight multiplier:1 constant:0];
+    [emptyView addConstraints:@[contentViewConstraintCenterX,contentViewConstraintCenterY,contentViewConstraintWidth,contentViewConstraintHeight]];
+    
+    if (emptyView.customView)
+    {
+        [emptyView.contentView addSubview:emptyView.customView];
+        NSLayoutConstraint *customViewConstraintCenterX = [NSLayoutConstraint constraintWithItem:emptyView.customView attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:emptyView.contentView attribute:NSLayoutAttributeCenterX multiplier:1 constant:0];
+        NSLayoutConstraint *customViewConstraintCenterY = [NSLayoutConstraint constraintWithItem:emptyView.customView attribute:NSLayoutAttributeCenterY relatedBy:NSLayoutRelationEqual toItem:emptyView.contentView attribute:NSLayoutAttributeCenterY multiplier:1 constant:0];
+        NSLayoutConstraint *customViewConstraintWidth = [NSLayoutConstraint constraintWithItem:emptyView.customView attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:emptyView.contentView attribute:NSLayoutAttributeWidth multiplier:1 constant:0];
+        NSLayoutConstraint *customViewConstraintHeight = [NSLayoutConstraint constraintWithItem:emptyView.customView attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:emptyView.contentView attribute:NSLayoutAttributeHeight multiplier:1 constant:0];
+
+        [emptyView.contentView addConstraints:@[customViewConstraintCenterX,customViewConstraintCenterY,customViewConstraintWidth,customViewConstraintHeight]];
+        
+        return;
+    }
+    
+    NSLayoutConstraint *imgConstraintCenterX = [NSLayoutConstraint constraintWithItem:emptyView.imageView attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:emptyView.contentView attribute:NSLayoutAttributeCenterX multiplier:1 constant:0];
+    NSLayoutConstraint *imgConstraintCenterY = [NSLayoutConstraint constraintWithItem:emptyView.imageView attribute:NSLayoutAttributeCenterY relatedBy:NSLayoutRelationEqual toItem:emptyView.contentView attribute:NSLayoutAttributeCenterY multiplier:1 constant:-100];
+    NSLayoutConstraint *imgConstraintHeight = [NSLayoutConstraint constraintWithItem:emptyView.imageView attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:emptyView.contentView attribute:NSLayoutAttributeHeight multiplier:0 constant:100];
+    NSLayoutConstraint *imgConstraintWidth = [NSLayoutConstraint constraintWithItem:emptyView.imageView attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:emptyView.contentView attribute:NSLayoutAttributeWidth multiplier:0 constant:100];
+    [emptyView.contentView  addConstraints:@[imgConstraintCenterX,imgConstraintCenterY,imgConstraintHeight,imgConstraintWidth]];
+    
+    CGSize size = [emptyView.label.text sizeWithAttributes:@{NSFontAttributeName:[UIFont systemFontOfSize:16.0f]}];
+    NSLayoutConstraint *labConstraintCenterX = [NSLayoutConstraint constraintWithItem:emptyView.label attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:emptyView.contentView attribute:NSLayoutAttributeCenterX multiplier:1 constant:0];
+    NSLayoutConstraint *labConstraintCenterY = [NSLayoutConstraint constraintWithItem:emptyView.label attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:emptyView.imageView attribute:NSLayoutAttributeBottom multiplier:1 constant:25];
+    NSLayoutConstraint *labConstraintHeight = [NSLayoutConstraint constraintWithItem:emptyView.label attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:emptyView.contentView attribute:NSLayoutAttributeHeight multiplier:0 constant:size.height];
+    NSLayoutConstraint *labConstraintWidth = [NSLayoutConstraint constraintWithItem:emptyView.label attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:emptyView.contentView attribute:NSLayoutAttributeWidth multiplier:0 constant:size.width];
+    [emptyView.contentView  addConstraints:@[labConstraintCenterX,labConstraintCenterY,labConstraintHeight,labConstraintWidth]];
 }
 @end

@@ -18,6 +18,8 @@
 
 @protocol EmptyDataViewDataSource <NSObject>
 
+@optional
+
 - (UIView *)emptyDataCustomView;
 
 @end
