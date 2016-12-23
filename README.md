@@ -1,0 +1,2 @@
+# CGYEmptyData
+动态判断UITableView和UICollectionView的数据源是否为0，从而展示UITableView和UICollectionView缺省页。
